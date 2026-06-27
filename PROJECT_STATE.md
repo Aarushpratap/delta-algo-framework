@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Version
-**Version:** 0.6.9 (Phase 6.9 Complete)
+**Version:** 1.0.0 (Production Deployment Pack v2 Complete)
 
 ## Overall Progress
-**Progress:** ~99% (Phase 6.9 completed)
+**Progress:** 100% core framework complete (Phase 7B pending)
 
 ## Architecture
 
@@ -54,6 +54,17 @@ The project follows a 6-layer architecture with strict separation of concerns, d
 │  dashboard/                      Presentation Layer             │
 │  └ app.py           ✓ Streamlit web interface                   │
 ├─────────────────────────────────────────────────────────────────┤
+│  deploy/                         Deployment Scripts             │
+│  ├ install.sh    ✓   One-time server setup                      │
+│  ├ deploy.sh     ✓   Git pull + pip install + restart           │
+│  ├ start.sh      ✓   Start systemd service                      │
+│  ├ stop.sh       ✓   Stop systemd service                       │
+│  ├ restart.sh    ✓   Restart systemd service                    │
+│  └ status.sh     ✓   Show service, python, git, URL             │
+├─────────────────────────────────────────────────────────────────┤
+│  systemd/                        Process Management             │
+│  └ delta-algo.service ✓ Auto-restart, .env, journald            │
+├─────────────────────────────────────────────────────────────────┤
 │  core/                           Domain models & enums          │
 │  ├ enums.py      ✓   TradingMode                                │
 │  └ models.py     ✓   Candle, Ticker, Balance, Position          │
@@ -78,6 +89,12 @@ The project follows a 6-layer architecture with strict separation of concerns, d
 * **Live Monitor**: `live/__init__.py`, `live/live_monitor.py`
 * **Replay Engine**: `replay/__init__.py`, `replay/replay_engine.py`
 * **Streamlit Dashboard**: `dashboard/__init__.py`, `dashboard/app.py`
+* **Deployment Pack v1**: `deploy/install.sh`, `deploy/deploy.sh`, `deploy/start.sh`, `deploy/stop.sh`, `deploy/restart.sh`, `deploy/status.sh`
+* **Deployment Pack v2**: `deploy/update.sh`, `deploy/doctor.sh`, `deploy/logs.sh`, `deploy/backup.sh`, `deploy/rollback.sh`
+* **systemd Service**: `systemd/delta-algo.service`
+* **Health Check**: `healthcheck.py`
+* **Env Template**: `.env.example`
+* **Logs Dir**: `logs/.gitkeep`
 * **Backtesting Engine**: `backtest/__init__.py`, `backtest/engine.py`, `backtest/report.py`
 * **Paper Trading Engine**: `paper/__init__.py`, `paper/paper_position.py`, `paper/paper_engine.py`
 * **Validation Suite**: `tests/test_indicators.py`, `tests/test_strategy.py`, `tests/test_risk.py`, `tests/test_backtest.py`, `tests/test_integration.py`

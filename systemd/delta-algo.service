@@ -1,0 +1,40 @@
+[Unit]
+Description=Delta Algo Trading Framework (Streamlit Dashboard)
+Documentation=https://github.com/your-org/delta-algo-framework
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rdpuser
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+WorkingDirectory=/home/rdpuser/delta-algo-framework
+
+# Loads every KEY=VALUE from .env into the process environment.
+# Never hardcode credentials — they must live only in .env.
+EnvironmentFile=/home/rdpuser/delta-algo-framework/.env
+
+# ── Startup command ──────────────────────────────────────────────────────────
+# ${DASHBOARD_PORT} is expanded from the EnvironmentFile above.
+# Streamlit picks up LOG_LEVEL from the environment automatically.
+ExecStart=/home/rdpuser/delta-algo-framework/.venv/bin/streamlit run \
+    /home/rdpuser/delta-algo-framework/dashboard/app.py \
+    --server.port=${DASHBOARD_PORT} \
+    --server.address=0.0.0.0 \
+    --server.headless=true \
+    --logger.level=info
+
+# ── Process supervision ──────────────────────────────────────────────────────
+Restart=always
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=20
+
+# ── Logging (view with: journalctl -u delta-algo -f) ────────────────────────
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=delta-algo
+
+[Install]
+WantedBy=multi-user.target

@@ -99,7 +99,56 @@
 
 ## Pending Modules
 
-* **Strategy Layer**: Abstract strategy base class that receives signals and executes rules.
+* **Live Order Execution (Phase 7B)**: Real Delta Exchange order placement.
+
+---
+
+## Completed So Far (Production Deployment Pack)
+
+* **Deployment Scripts** (`deploy/`):
+  * `install.sh` — One-time environment setup (venv, pip, logs dir, .env check).
+  * `deploy.sh` — Git pull + pip install + service restart in one command.
+  * `start.sh` — Start the systemd service and print the dashboard URL.
+  * `stop.sh` — Gracefully stop the systemd service.
+  * `restart.sh` — Restart the systemd service with status output.
+  * `status.sh` — Show service state, Python version, git branch/commit, and dashboard URL.
+* **systemd Service** (`systemd/delta-algo.service`):
+  * Auto-starts on reboot via `WantedBy=multi-user.target`.
+  * Loads `.env` via `EnvironmentFile`.
+  * `Restart=always` with 10-second back-off.
+  * Logs to journald (`journalctl -u delta-algo -f`).
+* **Health Check** (`healthcheck.py`):
+  * Checks Python ≥ 3.10, `.env` presence, API key/secret validity, all pip packages, and dashboard file.
+  * Returns PASS/FAIL per check and exits non-zero if any check fails.
+* **Environment Template** (`.env.example`):
+  * Complete template derived from `config/settings.py` covering every env var with inline documentation.
+* **Logs Directory** (`logs/.gitkeep`):
+  * Tracked empty directory for runtime log file output.
+
+## Completed So Far (Production Deployment Pack v2 — Oracle Style)
+
+* **systemd service** (`systemd/delta-algo.service`):
+  * Fixed `WorkingDirectory` and `EnvironmentFile` to use Oracle path `/home/rdpuser/delta-algo-framework`.
+  * `DASHBOARD_PORT` dynamically read from `.env` — no hardcoded port.
+  * `RestartSec=5`, `After=network-online.target`, journald logging.
+* **Improved scripts** (`deploy/`):
+  * `install.sh` — Added Python version verification and healthcheck call.
+  * `deploy.sh` — Conditional pip (only if requirements hash changed), backup before deploy, env-driven `SERVICE_NAME`.
+  * `start.sh`, `stop.sh`, `restart.sh` — Dynamic `SERVICE_NAME` and port from `.env`.
+  * `status.sh` — Shows git, service, Python, venv, dashboard URL, and live healthcheck.
+* **New scripts** (`deploy/`):
+  * `doctor.sh` — 30+ point diagnostic: .env, credentials, venv, packages, project structure, file permissions, logs directory.
+  * `logs.sh` — Streams `journalctl -u $SERVICE_NAME -f` with extra argument passthrough.
+  * `backup.sh` — Creates timestamped `.tar.gz` in `backups/`, writes `latest.txt` pointer.
+  * `rollback.sh` — Stops service, restores backup (preserving `.env`), restarts; interactive confirmation.
+  * `update.sh` — Single command: backup → git pull → pip (conditional) → doctor → restart → status.
+* **Improved `healthcheck.py`**:
+  * Added checks for: internet connectivity, Delta REST endpoint reachability, `config/settings.py` presence.
+  * `--quiet` flag suppresses per-check lines, prints only summary.
+  * Structured output with section headers; exits with non-zero code on any failure.
+* **`.env.example`** — Added `SERVICE_NAME=delta-algo` deployment variable.
+* **`.gitignore`** — Added `backups/` and `.requirements.md5` to ignored paths.
+
 * **Execution Engines**: 
   * `execution/base.py` (Abstract Executor)
   * `execution/live.py` (Live orders)
