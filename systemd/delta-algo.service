@@ -11,19 +11,15 @@ User=rdpuser
 # ── Paths ────────────────────────────────────────────────────────────────────
 WorkingDirectory=/home/rdpuser/delta-algo-framework
 
-# Loads every KEY=VALUE from .env into the process environment.
-# Never hardcode credentials — they must live only in .env.
+# EnvironmentFile loads variables into the process environment.
+# NOTE: systemd does NOT expand ${VAR} tokens inside ExecStart=.
+# Variable substitution is handled inside start-streamlit.sh instead.
 EnvironmentFile=/home/rdpuser/delta-algo-framework/.env
 
-# ── Startup command ──────────────────────────────────────────────────────────
-# ${DASHBOARD_PORT} is expanded from the EnvironmentFile above.
-# Streamlit picks up LOG_LEVEL from the environment automatically.
-ExecStart=/home/rdpuser/delta-algo-framework/.venv/bin/streamlit run \
-    /home/rdpuser/delta-algo-framework/dashboard/app.py \
-    --server.port=${DASHBOARD_PORT} \
-    --server.address=0.0.0.0 \
-    --server.headless=true \
-    --logger.level=info
+# ── Startup ──────────────────────────────────────────────────────────────────
+# start-streamlit.sh sources .env itself, resolves DASHBOARD_PORT,
+# then exec's the venv Streamlit binary with the concrete port number.
+ExecStart=/bin/bash /home/rdpuser/delta-algo-framework/deploy/start-streamlit.sh
 
 # ── Process supervision ──────────────────────────────────────────────────────
 Restart=always

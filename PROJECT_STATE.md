@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Version
-**Version:** 1.0.0 (Production Deployment Pack v2 Complete)
+**Version:** 1.0.1 (Hotfix v2.1 — systemd Startup Fix)
 
 ## Overall Progress
 **Progress:** 100% core framework complete (Phase 7B pending)

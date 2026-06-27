@@ -149,6 +149,35 @@
 * **`.env.example`** — Added `SERVICE_NAME=delta-algo` deployment variable.
 * **`.gitignore`** — Added `backups/` and `.requirements.md5` to ignored paths.
 
+---
+
+## Hotfix v2.1 — systemd Startup Failure Fix
+
+**Root Cause**: systemd `EnvironmentFile` loads variables into the process
+environment but does **not** perform shell variable expansion inside `ExecStart=`.
+The token `${DASHBOARD_PORT}` was passed as a literal string to Streamlit,
+causing an argument-parse failure (`status=2`).
+
+**Fix Applied**:
+* **Created `deploy/start-streamlit.sh`**: Thin wrapper script that is the
+  actual `ExecStart` target. It `source`s `.env` itself, resolves
+  `DASHBOARD_PORT` with a safe default, then `exec`s the venv Streamlit binary
+  with the concrete port number. systemd still manages the process lifetime.
+* **Updated `systemd/delta-algo.service`**: `ExecStart` now points to
+  `/bin/bash /home/rdpuser/delta-algo-framework/deploy/start-streamlit.sh`.
+  All other settings (`Restart`, `RestartSec`, `WorkingDirectory`,
+  `EnvironmentFile`, venv) are preserved.
+* **Updated `deploy/start.sh`**: Waits 3 seconds after `systemctl start` then
+  checks `is-active`. On failure, automatically prints `systemctl status` and
+  `journalctl -n 50` — zero manual debugging needed.
+* **Updated `deploy/status.sh`**: Now displays MainPID, resolved listening port
+  (from `ss -tlnp`), last start/stop timestamp, and inline healthcheck summary.
+* **Updated `deploy/install.sh`**: Added step 6 — validates systemd service
+  syntax (`systemd-analyze verify`), confirms `start-streamlit.sh` exists,
+  confirms venv Streamlit binary exists, confirms `dashboard/app.py` exists,
+  and makes all deploy scripts executable. Fails fast if any check fails.
+
+
 * **Execution Engines**: 
   * `execution/base.py` (Abstract Executor)
   * `execution/live.py` (Live orders)
